@@ -96,9 +96,9 @@ public class MainActivity extends RosActivity
         //masterURI = URI.create("http://192.168.15.247:11311/");
         //masterURI = URI.create("http://10.0.1.157:11311/");
 
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+        int currrosentapiVersion = android.os.Build.VERSION.SDK_INT;
 
-        int sensorDelay = 20000; // 20,000 us == 50 Hz for Android 3.1 and above
+        int sensorDelay = 40000; // 40,000 us == 100 Hz for Android 3.1 and above
         if(currentapiVersion <= android.os.Build.VERSION_CODES.HONEYCOMB){
             sensorDelay = SensorManager.SENSOR_DELAY_UI; // 16.7Hz for older devices.  They only support enum values, not the microsecond version.
         }
