@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # from http://vardhan-justlikethat.blogspot.co.il/2012/05/android-solution-install-parse-failed.html
-
+PREFIX=~
 PROJECT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR=`basename $PROJECT_PATH`
-BIN_DIR=~/rosjava/devel/share/maven/org/ros/android_core/$PROJECT_DIR/0.2.0/
+BIN_DIR=$PREFIX/rosjava/devel/share/maven/org/ros/android_core/$PROJECT_DIR/0.2.0/
 APK="$PROJECT_DIR-0.2.0.apk"
 KEY=${PROJECT_PATH}/keys/${1}.jks
 ALIAS="org.ros.android.$PROJECT_DIR"
@@ -22,7 +22,7 @@ if [ ! -f ${KEY} ]; then
     exit
 fi
 
-cd ~/rosjava
+cd $PREFIX/rosjava
 catkin_make
 
 if [ $? -eq 0 ]
@@ -30,7 +30,7 @@ if [ $? -eq 0 ]
   adb uninstall $ALIAS
   jarsigner -verbose -keystore $KEY ${BIN_DIR}${APK} $ALIAS
   adb install ${BIN_DIR}${APK}
-  #adb shell am start -n org.ros.android.android_sensors_driver/org.ros.android.android_sensors_driver.MainActivity
+  adb shell am start -n $ALIAS/$ALIAS.MainActivity
   #adb logcat -c
   #adb logcat
 fi
