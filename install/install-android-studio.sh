@@ -20,5 +20,5 @@ sudo apt-get update
 sudo apt-get install android-studio
 
 #install java orcle jdk
-./install-java-jdk.sh
+install-java-jdk.sh
 
