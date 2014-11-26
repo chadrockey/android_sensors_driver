@@ -98,7 +98,7 @@ public class MainActivity extends RosActivity
 
         int currentapiVersion = android.os.Build.VERSION.SDK_INT;
 
-        int sensorDelay = 40000; // 40,000 us == 100 Hz for Android 3.1 and above
+        int sensorDelay = 10000; // 10,000 us == 100 Hz for Android 3.1 and above
         if(currentapiVersion <= android.os.Build.VERSION_CODES.HONEYCOMB){
             sensorDelay = SensorManager.SENSOR_DELAY_UI; // 16.7Hz for older devices.  They only support enum values, not the microsecond version.
         }
