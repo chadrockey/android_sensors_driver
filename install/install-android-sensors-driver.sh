@@ -1,8 +1,9 @@
 #!/bin/bash
 
-PREFIX=~/prefix
+PROJECT_DIR=~/ANPL
+
 # clone android_core , android_extras
-cd ${PREFIX}/rosjava/src
+cd ${PROJECT_DIR}/rosjava/src
 git clone -b indigo https://github.com/rosjava/android_core.git
 git clone -b indigo https://github.com/rosjava/android_extras.git
 
@@ -12,5 +13,5 @@ echo "include \"android_sensors_driver\"">> settings.gradle
 #clone android_sensor_driver
 git clone https://github.com/talregev/android_sensors_driver.git
 
-cd ${PREFIX}/rosjava
+cd ${PROJECT_DIR}/rosjava
 catkin_make
