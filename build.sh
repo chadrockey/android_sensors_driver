@@ -30,10 +30,10 @@ catkin_make
 if [ $? -eq 0 ]
  then
   adb uninstall $ALIAS
-  jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $KEY ${BIN_DIR}${APK} $ALIAS
   echo "Installing the APK, please enter the password of your key,"
   echo "If you don't know, just delete the keys/key.jks,"
   echo "and it will create a new one."
+  jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $KEY ${BIN_DIR}${APK} $ALIAS
   adb install ${BIN_DIR}${APK}
   adb shell am start -n $ALIAS/$ALIAS.MainActivity
   #adb logcat -c
