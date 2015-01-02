@@ -22,22 +22,25 @@ export ANDROID_HOME=${APP_DIR}/$SDK_NAME
 
 #from http://stackoverflow.com/questions/17963508/how-to-install-android-sdk-build-tools-on-the-command-line
 #add package to android sdk
-echo yes | android update sdk -u -a -t 1,2,3,9,16,25,27,30,109,110,116
+
+#from http://stackoverflow.com/questions/6775904/grepping-using-the-alternative-operator
+#from http://stackoverflow.com/questions/16015590/bash-extract-number-from-string
+#from http://stackoverflow.com/questions/4594319/shell-replace-cr-lf-by-comma
+#from http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable
+NUMBERS=`android list sdk --all | grep -E "Android SDK Tools|Android SDK Platform-tools|Android SDK Build-tools, revision 21.1.2|Android SDK Build-tools, revision 19.1|SDK Platform Android 4.0.3, API 15|SDK Platform Android 2.3.3, API 10|Android Support Repository|Android Support Library|Google Repository" | cut -d'-' -f1| sed -e 'H;${x;s/\n/,/g;s/^,//;p;};d' | tr -d ' '`
+echo yes | android update sdk -u -a -t $NUMBERS
 
 #   android sdk number. 
-#   TODO the number will change in the future, and need to update by name.
-#   to see this list, type: 
+#   to see full list, type: 
 #     android list sdk --all
 :' 
-   1- Android SDK Tools, revision 23.0.5
+   1- Android SDK Tools, revision 24.0.2
    2- Android SDK Platform-tools, revision 21
-   3- Android SDK Build-tools, revision 21.1.1
-   9- Android SDK Build-tools, revision 19.1
-  16- Android SDK Build-tools, revision 18.0.1
-  25- SDK Platform Android 4.0.3, API 15, revision 5
-  27- SDK Platform Android 3.2, API 13, revision 1
-  30- SDK Platform Android 2.3.3, API 10, revision 2
- 109- Android Support Repository, revision 9
- 110- Android Support Library, revision 21.0.2
- 116- Google Repository, revision 13
+   3- Android SDK Build-tools, revision 21.1.2
+  10- Android SDK Build-tools, revision 19.1
+  26- SDK Platform Android 4.0.3, API 15, revision 5
+  31- SDK Platform Android 2.3.3, API 10, revision 2
+ 112- Android Support Repository, revision 11
+ 113- Android Support Library, revision 21.0.3
+ 119- Google Repository, revision 15
 '
