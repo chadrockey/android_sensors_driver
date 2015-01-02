@@ -16,16 +16,16 @@
 
 dependencies {
   compile "org.ros.rosjava_core:rosjava_tutorial_pubsub:[0,)"
-  compile project(':android_15')
+  compile project(':android_10')
 }
 
 apply plugin: 'android'
 
 android {
-    compileSdkVersion 15
+    compileSdkVersion 21
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 10
         applicationId "org.ros.android.android_sensors_driver"
         targetSdkVersion 15
         versionCode 1
