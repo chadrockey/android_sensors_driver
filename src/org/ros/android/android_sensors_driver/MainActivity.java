@@ -26,19 +26,16 @@ import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
-
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.SubMenu;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.MenuInflater;
 
 import java.net.URI;
 
@@ -50,15 +47,16 @@ import java.net.URI;
 
 public class MainActivity extends RosActivity
 {
-    private NavSatFixPublisher fix_pub;
-    private ImuPublisher imu_pub;
-    private MagneticFieldPublisher magnetic_field_pub;
-    private FluidPressurePublisher fluid_pressure_pub;
-    private IlluminancePublisher illuminance_pub;
-    private TemperaturePublisher temperature_pub;
+    protected NavSatFixPublisher        fix_pub;
+    protected ImuPublisher              imu_pub;
+    protected MagneticFieldPublisher    magnetic_field_pub;
+    protected FluidPressurePublisher    fluid_pressure_pub;
+    protected IlluminancePublisher      illuminance_pub;
+    protected TemperaturePublisher      temperature_pub;
 
-    private LocationManager mLocationManager;
-    private SensorManager mSensorManager;
+    protected LocationManager           mLocationManager;
+    protected SensorManager             mSensorManager;
+    protected PowerManager.WakeLock     mWakeLock;
 
 
     public MainActivity()
@@ -66,13 +64,7 @@ public class MainActivity extends RosActivity
         super("ROS Sensors Driver", "ROS Sensors Driver");
     }
 
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-    }
-
-    @Override
+    @Override @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
@@ -80,14 +72,31 @@ public class MainActivity extends RosActivity
 
         mLocationManager = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
         mSensorManager = (SensorManager)this.getSystemService(SENSOR_SERVICE);
+
+        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        mWakeLock.acquire();
+    }
+
+    @Override
+    protected  void onDestroy() {
+        mWakeLock.release();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        mWakeLock.release();
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
+        mWakeLock.acquire();
     }
-
 
     @Override
     protected void init(NodeMainExecutor nodeMainExecutor)
@@ -105,7 +114,7 @@ public class MainActivity extends RosActivity
 
         @SuppressWarnings("deprecation")
         int tempSensor = Sensor.TYPE_TEMPERATURE; // Older temperature
-        if(currentapiVersion <= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+        if(currentapiVersion >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH){
             tempSensor = Sensor.TYPE_AMBIENT_TEMPERATURE; // Use newer temperature if possible
         }
 
