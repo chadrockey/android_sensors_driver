@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">ROS Sensors Driver</string>
-    
     <string name="help_title">About Android Sensors Driver</string>
     <string name="help_message">Android Sensors Driver is an open source project!  For more information, go to the \'Wiki\'.  To report bugs or request features click \'Report\'.</string>
     <string name="help_ok">OK</string>

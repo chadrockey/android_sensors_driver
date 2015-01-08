@@ -15,8 +15,8 @@
  */
 
 dependencies {
-  compile "org.ros.rosjava_core:rosjava_tutorial_pubsub:[0,)"
-  compile project(':android_10')
+    compile "org.ros.rosjava_core:rosjava_tutorial_pubsub:[0,)"
+    compile project(':android_10')
 }
 
 apply plugin: 'android'
