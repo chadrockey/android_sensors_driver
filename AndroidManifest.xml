@@ -56,7 +56,7 @@
         </activity>
 
         <activity
-            android:name="org.ros.android.MasterChooser"
+            android:name=".MasterChooser"
             android:screenOrientation="portrait">
         </activity>
 

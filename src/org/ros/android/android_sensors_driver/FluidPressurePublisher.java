@@ -50,18 +50,21 @@ import sensor_msgs.FluidPressure;
 
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class FluidPressurePublisher implements NodeMain {
 
+    private String robotName;
     private FluidPressureThread fpThread;
     private SensorListener sensorListener;
     private SensorManager sensorManager;
     private Publisher<FluidPressure> publisher;
     private int sensorDelay;
 
-    public FluidPressurePublisher(SensorManager manager, int sensorDelay) {
+    public FluidPressurePublisher(SensorManager manager, int sensorDelay, String robotName) {
         this.sensorManager = manager;
         this.sensorDelay = sensorDelay;
+        this.robotName = robotName;
     }
 
     public GraphName getDefaultNodeName() {
@@ -76,7 +79,7 @@ public class FluidPressurePublisher implements NodeMain {
             List<Sensor> mfList = this.sensorManager.getSensorList(Sensor.TYPE_PRESSURE);
 
             if (mfList.size() > 0) {
-                this.publisher = node.newPublisher("android/barometric_pressure", "sensor_msgs/FluidPressure");
+                this.publisher = node.newPublisher(robotName + "/android/barometric_pressure", "sensor_msgs/FluidPressure");
                 this.sensorListener = new SensorListener(this.publisher);
                 this.fpThread = new FluidPressureThread(this.sensorManager, this.sensorListener);
                 this.fpThread.start();
@@ -157,7 +160,7 @@ public class FluidPressurePublisher implements NodeMain {
                 FluidPressure msg = this.publisher.newMessage();
                 long time_delta_millis = System.currentTimeMillis() - SystemClock.uptimeMillis();
                 msg.getHeader().setStamp(Time.fromMillis(time_delta_millis + event.timestamp / 1000000));
-                msg.getHeader().setFrameId("/imu");// TODO Make parameter
+                msg.getHeader().setFrameId("/barometric_pressure");// TODO Make parameter
 
                 msg.setFluidPressure(100.0 * event.values[0]); // Reported in hPa, need to output in Pa
                 msg.setVariance(0.0);

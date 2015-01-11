@@ -16,6 +16,7 @@
 
 package org.ros.android.android_sensors_driver;
 
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -25,6 +26,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.view.Menu;
@@ -32,12 +35,16 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.common.base.Preconditions;
+
 import org.ros.address.InetAddressFactory;
 import org.ros.android.RosActivity;
+import org.ros.exception.RosRuntimeException;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMainExecutor;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
@@ -46,16 +53,19 @@ import java.net.URI;
 
 
 public class MainActivity extends RosActivity {
+    protected final int MASTER_CHOOSER_REQUEST_CODE = 1;
+    protected final int currentApiVersion = android.os.Build.VERSION.SDK_INT;
+
     protected NavSatFixPublisher fix_pub;
     protected ImuPublisher imu_pub;
     protected MagneticFieldPublisher magnetic_field_pub;
     protected FluidPressurePublisher fluid_pressure_pub;
     protected IlluminancePublisher illuminance_pub;
     protected TemperaturePublisher temperature_pub;
-
     protected LocationManager mLocationManager;
     protected SensorManager mSensorManager;
     protected PowerManager.WakeLock mWakeLock;
+    protected String robotName;
 
 
     public MainActivity() {
@@ -77,6 +87,49 @@ public class MainActivity extends RosActivity {
     }
 
     @Override
+    public void startMasterChooser() {
+        Preconditions.checkState(getMasterUri() == null);
+        // Call this method on super to avoid triggering our precondition in the
+        // overridden startActivityForResult().
+        Intent intent = new Intent(this, MasterChooser.class);
+        super.startActivityForResult(intent, MASTER_CHOOSER_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == MASTER_CHOOSER_REQUEST_CODE) {
+                if (data.getBooleanExtra("ROS_MASTER_CREATE_NEW", false)) {
+                    nodeMainExecutorService.startMaster(data.getBooleanExtra("ROS_MASTER_PRIVATE", true));
+                }
+                else {
+                    URI uri;
+                    try {
+                        uri = new URI(data.getStringExtra("ROS_MASTER_URI"));
+                        robotName = data.getStringExtra("ROBOT_NAME");
+                    }
+                    catch (URISyntaxException e) {
+                        throw new RosRuntimeException(e);
+                    }
+                    nodeMainExecutorService.setMasterUri(uri);
+                }
+                // Run init() in a new thread as a convenience since it often requires network access.
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        MainActivity.this.init(nodeMainExecutorService);
+                        return null;
+                    }
+                }.execute();
+            }
+            else {
+                // Without a master URI configured, we are in an unusable state.
+                nodeMainExecutorService.shutdown();
+            }
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         mWakeLock.release();
         super.onDestroy();
@@ -94,73 +147,67 @@ public class MainActivity extends RosActivity {
         mWakeLock.acquire();
     }
 
-    @Override
+    @Override @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) //API = 15
     protected void init(NodeMainExecutor nodeMainExecutor) {
         URI masterURI = getMasterUri();
-        //masterURI = URI.create("http://192.168.15.247:11311/");
-        //masterURI = URI.create("http://10.0.1.157:11311/");
 
-        int currentapiVersion = android.os.Build.VERSION.SDK_INT;
+
 
         int sensorDelay = 10000; // 10,000 us == 100 Hz for Android 3.1 and above
-        if (currentapiVersion <= android.os.Build.VERSION_CODES.HONEYCOMB) {
+        if (currentApiVersion <= android.os.Build.VERSION_CODES.HONEYCOMB) {
             sensorDelay = SensorManager.SENSOR_DELAY_UI; // 16.7Hz for older devices.  They only support enum values, not the microsecond version.
         }
 
-        @SuppressWarnings("deprecation")
-        int tempSensor = Sensor.TYPE_TEMPERATURE; // Older temperature
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+
+        int tempSensor;
+        if (currentApiVersion >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+
             tempSensor = Sensor.TYPE_AMBIENT_TEMPERATURE; // Use newer temperature if possible
         }
-
-
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration.setMasterUri(masterURI);
-            nodeConfiguration.setNodeName("android_sensors_driver_magnetic_field");
-            this.magnetic_field_pub = new MagneticFieldPublisher(mSensorManager, sensorDelay);
-            nodeMainExecutor.execute(this.magnetic_field_pub, nodeConfiguration);
+        else
+        {
+            //noinspection deprecation
+            tempSensor = Sensor.TYPE_TEMPERATURE; // Older temperature
         }
 
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration2 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration2.setMasterUri(masterURI);
-            nodeConfiguration2.setNodeName("android_sensors_driver_nav_sat_fix");
-            this.fix_pub = new NavSatFixPublisher(mLocationManager);
-            nodeMainExecutor.execute(this.fix_pub, nodeConfiguration2);
-        }
 
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration3 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration3.setMasterUri(masterURI);
-            nodeConfiguration3.setNodeName("android_sensors_driver_imu");
-            this.imu_pub = new ImuPublisher(mSensorManager, sensorDelay);
-            nodeMainExecutor.execute(this.imu_pub, nodeConfiguration3);
-        }
 
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration4 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration4.setMasterUri(masterURI);
-            nodeConfiguration4.setNodeName("android_sensors_driver_pressure");
-            this.fluid_pressure_pub = new FluidPressurePublisher(mSensorManager, sensorDelay);
-            nodeMainExecutor.execute(this.fluid_pressure_pub, nodeConfiguration4);
-        }
+        NodeConfiguration nodeConfiguration = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration.setMasterUri(masterURI);
+        nodeConfiguration.setNodeName("android_sensors_driver_magnetic_field");
+        this.magnetic_field_pub = new MagneticFieldPublisher(mSensorManager, sensorDelay, robotName);
+        nodeMainExecutor.execute(this.magnetic_field_pub, nodeConfiguration);
 
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration5 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration5.setMasterUri(masterURI);
-            nodeConfiguration5.setNodeName("android_sensors_driver_illuminance");
-            this.illuminance_pub = new IlluminancePublisher(mSensorManager, sensorDelay);
-            nodeMainExecutor.execute(this.illuminance_pub, nodeConfiguration5);
-        }
+        NodeConfiguration nodeConfiguration2 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration2.setMasterUri(masterURI);
+        nodeConfiguration2.setNodeName("android_sensors_driver_nav_sat_fix");
+        this.fix_pub = new NavSatFixPublisher(mLocationManager, robotName);
+        nodeMainExecutor.execute(this.fix_pub, nodeConfiguration2);
 
-        if (currentapiVersion >= android.os.Build.VERSION_CODES.GINGERBREAD) {
-            NodeConfiguration nodeConfiguration6 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
-            nodeConfiguration6.setMasterUri(masterURI);
-            nodeConfiguration6.setNodeName("android_sensors_driver_temperature");
-            this.temperature_pub = new TemperaturePublisher(mSensorManager, sensorDelay, tempSensor);
-            nodeMainExecutor.execute(this.temperature_pub, nodeConfiguration6);
-        }
+        NodeConfiguration nodeConfiguration3 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration3.setMasterUri(masterURI);
+        nodeConfiguration3.setNodeName("android_sensors_driver_imu");
+        this.imu_pub = new ImuPublisher(mSensorManager, sensorDelay, robotName);
+        nodeMainExecutor.execute(this.imu_pub, nodeConfiguration3);
+
+        NodeConfiguration nodeConfiguration4 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration4.setMasterUri(masterURI);
+        nodeConfiguration4.setNodeName("android_sensors_driver_pressure");
+        this.fluid_pressure_pub = new FluidPressurePublisher(mSensorManager, sensorDelay, robotName);
+        nodeMainExecutor.execute(this.fluid_pressure_pub, nodeConfiguration4);
+
+        NodeConfiguration nodeConfiguration5 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration5.setMasterUri(masterURI);
+        nodeConfiguration5.setNodeName("android_sensors_driver_illuminance");
+        this.illuminance_pub = new IlluminancePublisher(mSensorManager, sensorDelay, robotName);
+        nodeMainExecutor.execute(this.illuminance_pub, nodeConfiguration5);
+
+        NodeConfiguration nodeConfiguration6 = NodeConfiguration.newPublic(InetAddressFactory.newNonLoopback().getHostAddress());
+        nodeConfiguration6.setMasterUri(masterURI);
+        nodeConfiguration6.setNodeName("android_sensors_driver_temperature");
+        this.temperature_pub = new TemperaturePublisher(mSensorManager, sensorDelay, tempSensor, robotName);
+        nodeMainExecutor.execute(this.temperature_pub, nodeConfiguration6);
+
     }
 
     @Override

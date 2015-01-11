@@ -50,18 +50,21 @@ import sensor_msgs.Illuminance;
 
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class IlluminancePublisher implements NodeMain {
 
+    private String robotName;
     private IlluminanceThread ilThread;
     private SensorListener sensorListener;
     private SensorManager sensorManager;
     private Publisher<Illuminance> publisher;
     private int sensorDelay;
 
-    public IlluminancePublisher(SensorManager manager, int sensorDelay) {
+    public IlluminancePublisher(SensorManager manager, int sensorDelay, String robotName) {
         this.sensorManager = manager;
         this.sensorDelay = sensorDelay;
+        this.robotName = robotName;
     }
 
     public GraphName getDefaultNodeName() {
@@ -76,7 +79,7 @@ public class IlluminancePublisher implements NodeMain {
             List<Sensor> mfList = this.sensorManager.getSensorList(Sensor.TYPE_LIGHT);
 
             if (mfList.size() > 0) {
-                this.publisher = node.newPublisher("android/illuminance", "sensor_msgs/Illuminance");
+                this.publisher = node.newPublisher(robotName + "/android/illuminance", "sensor_msgs/Illuminance");
                 this.sensorListener = new SensorListener(this.publisher);
                 this.ilThread = new IlluminanceThread(this.sensorManager, this.sensorListener);
                 this.ilThread.start();
@@ -157,7 +160,7 @@ public class IlluminancePublisher implements NodeMain {
                 Illuminance msg = this.publisher.newMessage();
                 long time_delta_millis = System.currentTimeMillis() - SystemClock.uptimeMillis();
                 msg.getHeader().setStamp(Time.fromMillis(time_delta_millis + event.timestamp / 1000000));
-                msg.getHeader().setFrameId("android_illuminance"); // TODO Make parameter
+                msg.getHeader().setFrameId("/illuminance"); // TODO Make parameter
 
                 msg.setIlluminance(event.values[0]);
                 msg.setVariance(0.0); // TODO Make parameter

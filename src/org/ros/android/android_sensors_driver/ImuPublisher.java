@@ -51,18 +51,21 @@ import sensor_msgs.Imu;
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
  * @author axelfurlan@gmail.com (Axel Furlan)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class ImuPublisher implements NodeMain {
 
+    private String robotName;
     private ImuThread imuThread;
     private SensorListener sensorListener;
     private SensorManager sensorManager;
     private Publisher<Imu> publisher;
     private int sensorDelay;
 
-    public ImuPublisher(SensorManager manager, int sensorDelay) {
+    public ImuPublisher(SensorManager manager, int sensorDelay, String robotName) {
         this.sensorManager = manager;
         this.sensorDelay = sensorDelay;
+        this.robotName = robotName;
     }
 
     public GraphName getDefaultNodeName() {
@@ -74,7 +77,7 @@ public class ImuPublisher implements NodeMain {
 
     public void onStart(ConnectedNode node) {
         try {
-            this.publisher = node.newPublisher("android/imu", "sensor_msgs/Imu");
+            this.publisher = node.newPublisher(robotName + "/android/imu", "sensor_msgs/Imu");
             // 	Determine if we have the various needed sensors
             boolean hasAccel = false;
             boolean hasGyro = false;

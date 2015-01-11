@@ -49,22 +49,25 @@ import sensor_msgs.NavSatStatus;
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
  * @author axelfurlan@gmail.com (Axel Furlan)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class NavSatFixPublisher implements NodeMain {
 
+    private String robotName;
     private NavSatThread navSatThread;
     private LocationManager locationManager;
     private NavSatListener navSatFixListener;
     private Publisher<NavSatFix> publisher;
 
-    public NavSatFixPublisher(LocationManager manager) {
+    public NavSatFixPublisher(LocationManager manager, String robotName) {
         this.locationManager = manager;
+        this.robotName = robotName;
     }
 
     //@Override
     public void onStart(ConnectedNode node) {
         try {
-            this.publisher = node.newPublisher("android/fix", "sensor_msgs/NavSatFix");
+            this.publisher = node.newPublisher(robotName + "/android/fix", "sensor_msgs/NavSatFix");
             this.navSatFixListener = new NavSatListener(publisher);
             this.navSatThread = new NavSatThread(this.locationManager, this.navSatFixListener);
             this.navSatThread.start();

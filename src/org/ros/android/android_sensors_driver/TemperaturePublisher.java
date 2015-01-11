@@ -50,9 +50,11 @@ import sensor_msgs.Temperature;
 
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class TemperaturePublisher implements NodeMain {
 
+    private String robotName;
     private TemperatureThread tmpThread;
     private SensorListener sensorListener;
     private SensorManager sensorManager;
@@ -60,10 +62,11 @@ public class TemperaturePublisher implements NodeMain {
     private int sensorType;
     private int sensorDelay;
 
-    public TemperaturePublisher(SensorManager manager, int sensorDelay, int sensorType) {
+    public TemperaturePublisher(SensorManager manager, int sensorDelay, int sensorType, String robotName) {
         this.sensorManager = manager;
         this.sensorDelay = sensorDelay;
         this.sensorType = sensorType;
+        this.robotName = robotName;
     }
 
     public GraphName getDefaultNodeName() {
@@ -78,7 +81,7 @@ public class TemperaturePublisher implements NodeMain {
             List<Sensor> mfList = this.sensorManager.getSensorList(sensorType);
 
             if (mfList.size() > 0) {
-                this.publisher = node.newPublisher("android/temperature", "sensor_msgs/Temperature");
+                this.publisher = node.newPublisher(robotName + "/android/temperature", "sensor_msgs/Temperature");
                 this.sensorListener = new SensorListener(this.publisher);
                 this.tmpThread = new TemperatureThread(this.sensorManager, this.sensorListener);
                 this.tmpThread.start();

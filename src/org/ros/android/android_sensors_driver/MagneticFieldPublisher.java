@@ -50,18 +50,21 @@ import sensor_msgs.MagneticField;
 
 /**
  * @author chadrockey@gmail.com (Chad Rockey)
+ * @author tal.regev@gmail.com  (Tal Regev)
  */
 public class MagneticFieldPublisher implements NodeMain {
 
+    private String robotName;
     private MagneticFieldThread mfThread;
     private SensorListener sensorListener;
     private SensorManager sensorManager;
     private Publisher<MagneticField> publisher;
     private int sensorDelay;
 
-    public MagneticFieldPublisher(SensorManager manager, int sensorDelay) {
+    public MagneticFieldPublisher(SensorManager manager, int sensorDelay,String robotName) {
         this.sensorManager = manager;
         this.sensorDelay = sensorDelay;
+        this.robotName = robotName;
     }
 
     public GraphName getDefaultNodeName() {
@@ -76,7 +79,7 @@ public class MagneticFieldPublisher implements NodeMain {
             List<Sensor> mfList = this.sensorManager.getSensorList(Sensor.TYPE_MAGNETIC_FIELD);
 
             if (mfList.size() > 0) {
-                this.publisher = node.newPublisher("android/magnetic_field", "sensor_msgs/MagneticField");
+                this.publisher = node.newPublisher(robotName + "/android/magnetic_field", "sensor_msgs/MagneticField");
                 this.sensorListener = new SensorListener(this.publisher);
                 this.mfThread = new MagneticFieldThread(this.sensorManager, this.sensorListener);
                 this.mfThread.start();
@@ -157,7 +160,7 @@ public class MagneticFieldPublisher implements NodeMain {
                 MagneticField msg = this.publisher.newMessage();
                 long time_delta_millis = System.currentTimeMillis() - SystemClock.uptimeMillis();
                 msg.getHeader().setStamp(Time.fromMillis(time_delta_millis + event.timestamp / 1000000));
-                msg.getHeader().setFrameId("/imu");// TODO Make parameter
+                msg.getHeader().setFrameId("/magnetic_field");// TODO Make parameter
 
                 msg.getMagneticField().setX(event.values[0] / 1e6);
                 msg.getMagneticField().setY(event.values[1] / 1e6);
