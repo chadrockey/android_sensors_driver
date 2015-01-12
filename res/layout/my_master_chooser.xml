@@ -7,7 +7,7 @@
         android:id="@+id/robot_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Robot Name:"
+        android:text="@string/robot_name"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:gravity="left"
         android:layout_alignWithParentIfMissing="false"
@@ -22,6 +22,6 @@
         android:layout_toRightOf="@+id/robot_name"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:text="phone1"/>
+        android:text="@string/phone1"/>
 
 </RelativeLayout>

@@ -29,10 +29,10 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.common.base.Preconditions;
@@ -64,7 +64,6 @@ public class MainActivity extends RosActivity {
     protected TemperaturePublisher temperature_pub;
     protected LocationManager mLocationManager;
     protected SensorManager mSensorManager;
-    protected PowerManager.WakeLock mWakeLock;
     protected String robotName;
 
 
@@ -76,14 +75,14 @@ public class MainActivity extends RosActivity {
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
 
         mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         mSensorManager = (SensorManager) this.getSystemService(SENSOR_SERVICE);
 
-        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
-        mWakeLock.acquire();
+
     }
 
     @Override
@@ -131,20 +130,17 @@ public class MainActivity extends RosActivity {
 
     @Override
     protected void onDestroy() {
-        mWakeLock.release();
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mWakeLock.release();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mWakeLock.acquire();
     }
 
     @Override @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) //API = 15
