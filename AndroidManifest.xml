@@ -2,13 +2,8 @@
 <manifest
     package="org.ros.android.android_sensors_driver"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="1"
-    android:versionName="1.0">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk
-        android:minSdkVersion="10"
-        android:targetSdkVersion="15"/>
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
@@ -20,7 +15,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/sensors_launcher"
+        android:icon="@mipmap/sensors_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
         tools:replace="android:icon">
@@ -43,16 +38,6 @@
                     android:path="/wiki/android_sensors_driver/install"
                     android:scheme="http"/>
             </intent-filter>
-
-            <!-- intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:scheme="http"
-
-                       />
-            </intent-filter-->
-
-            <!-- android:host="*"   ?id=org.ros.android.sensors_driver  android:pathPattern="*org.ros.android.sensors_driver"     android:pathPrefix="/.*org.ros.android.sensors_driver.*"-->
         </activity>
 
         <activity
