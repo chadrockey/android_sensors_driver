@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/view_main"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal"
+    android:gravity="center">
+
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/view_main_content"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/titleTextGPS"
+        android:layout_width = "fill_parent"
+        android:layout_height = "fill_parent"
+        android:gravity="right|top"
+        android:textColor="#FFF"
+        android:textSize="20sp" />
+
+
+</FrameLayout>
